@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+    <title>OUT OF TOUCH</title> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="./images/icon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./images/icon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./images/icon/favicon-16x16.png">
+    <link rel="manifest" href="./images/icon/site.webmanifest">
+
+<style> 
+  html {
+    /* pin the gradient to the viewport so it never scrolls */
+    min-height: 100%;
+    background: linear-gradient(to bottom, #1a1919 0%, #0c0c0c 100%);
+    background-attachment: fixed;
+  }
+
+  body {
+    margin: 0;
+    font-family: Consolas, monospace;
+  }
+  /* ---- back button ---- */
+  .back-button {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1000;
+    width: 48px;
+    height: 48px;
+    display: inline-block;
+    transition: transform .2s ease, opacity .2s ease;
+  }
+
+  .back-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .back-button:hover {
+    transform: scale(1.08);
+    opacity: .8;
+  }
+
+  .feed {
+    height: 100vh;
+    position: relative;
+  }
+
+  .feed-window {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+
+    display: flex;
+    justify-content: center; /* horizontal centre */
+    align-items: center;     /* vertical centre */
+
+    overflow: hidden;
+  }
+
+  .posts { 
+    width: min(70vw, 600px, calc(85vh * 3 / 5)); /* max width of 600px, but also keep the aspect ratio of 3:5 */
+    aspect-ratio: 3 / 5;
+    height: auto;
+    
+    border-radius: 7px;
+    flex: 0 0 auto; /* prevent shrinking */
+
+    background: rgba(255,255,255,0.05); 
+
+      /* scroll container */
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+
+      /* hides scrollbar */
+      scrollbar-width: none;      /* Firefox */
+      -ms-overflow-style: none;   /* old Edge */
+  }
+
+  .posts::-webkit-scrollbar {
+    display: none; /* Chrome / Safari */
+  }
+
+  .post {
+    width: 100%;
+    height: 100%; /* one post container per .posts scroll */
+    object-fit: contain;
+    background: #000;
+    display: block;
+
+    scroll-snap-align: start;
+    scroll-snap-stop: always; /* always forces a stop */
+  }
+
+  /* text panels that interrupt the feed, snap the same way images do */
+  .message {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2.5rem;
+
+    background: #0e0e0e;
+    color: rgba(255, 255, 255, 0.85);
+
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .message p {
+    font-size: 1.4rem;
+    line-height: 1.5;
+    margin: 0;
+    max-width: 30ch;
+  }
+
+  /* the final message looks the same but adds buttons instead of just fading past */
+  .message.final {
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .message.final .choices {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .message.final button {
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+    border: 1px solid rgb(21, 0, 254);
+    border-radius: 5px;
+    padding: 0.6rem 1.3rem;
+    cursor: pointer;
+    transition: background .2s ease, opacity .2s ease;
+  }
+
+  .message.final button:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+</style>
+</head>
+
+<body>
+<a class="back-button" href="index.html" aria-label="Go back to homepage">
+    <img src="./images/back-button.svg" alt="Homepage-Link">
+</a>
+
+<section class="hero">
+  <div class="wheel"></div>
+</section>
+
+<section class="feed">
+<div class="feed-window">
+  <div class="posts" id="posts">
+      <img class="post" src="./images/Post-A1.webp">
+      <img class="post" src="./images/Post-A2.webp">
+      <img class="post" src="./images/Post-A3.webp">
+      <img class="post" src="./images/Post-B1.webp">
+        <div class="message"><p>Are you going to keep scrolling?</p></div>
+      <img class="post" src="./images/Post-A4.webp">
+      <img class="post" src="./images/Post-A5.webp">
+        <div class="message"><p>You aren't helping anyone.</p></div>
+      <img class="post" src="./images/Post-A6.webp">
+      <img class="post" src="./images/Post-A9.webp">
+      <img class="post" src="./images/Post-A7.webp">
+      <img class="post" src="./images/Post-B2.webp">
+      <img class="post" src="./images/Post-A8.webp">
+        <div class="message"><p>What are you searching for?</p></div>
+      <img class="post" src="./images/Post-C2.webp">
+        <div class="message"><p>You won't find it here.</p></div>
+      <img class="post" src="./images/Post-A10.webp">
+      <img class="post" src="./images/Post-C3.webp">
+      <img class="post" src="./images/Post-C1.webp">
+        <div class="message"><p>Here, you won't find anything.</p></div>
+      <img class="post" src="./images/Post-C1.webp">
+        <div class="message"><p>You'll stay where you are.</p></div>
+      <img class="post" src="./images/Post-C1.webp">
+        <div class="message"><p>It's the same image.</p></div>
+      <img class="post" src="./images/Post-C1.webp">
+        <div class="message"><p>There's no relief here.</p></div>
+      <img class="post" src="./images/Post-C1.webp">
+        <div class="message final" id="finalMessage">
+          <p>Do you want to stay, or go back?</p>
+          <div class="choices">
+            <button type="button" id="stayBtn" aria-label="Stay on the current page">Stay</button>
+            <button type="button" id="restartBtn" aria-label="Restart from the beginning">Go to the beginning</button>
+          </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<script>
+    const posts = document.getElementById('posts');
+    const stayBtn = document.getElementById('stayBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    // "Stay" does nothing - scroll-snap already holds the user on this last
+    // panel, so the button's only function is to make that choice visible
+    stayBtn.addEventListener('click', () => {
+        // nothing happens intentionally
+    });
+
+    // "Go to the beginning" reloads the page, which resets scroll position
+    // to the very first post
+    restartBtn.addEventListener('click', () => {
+        window.location.reload();
+    });
+</script>
+
+</body>
+</html>
