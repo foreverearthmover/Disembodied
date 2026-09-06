@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="description" content="This web-page is a Digital Altar that allows users to ask questions and tune into their intuition for answers through a selection of tarot cards.">
+    <title>IN THE FACE OF INDECISION</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="./images/icon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./images/icon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./images/icon/favicon-16x16.png">
+    <link rel="manifest" href="./images/icon/site.webmanifest">
+
+<style>
+body {
+  margin: 0;
+  background-image: url('./images/background1.webp');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: rgb(0, 0, 0);
+  font-family: Consolas, Helvetica;
+  min-height: 100vh;
+}
+
+h1 {
+  text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+  text-align: center;
+  margin: 2rem auto 0;
+  font-size: 2rem;
+}
+
+/* ---- back button ---- */
+.back-button {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1000;
+  width: 48px;
+  height: 48px;
+  display: inline-block;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+.back-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.back-button:hover {
+  transform: scale(1.08);
+  opacity: .8;
+}
+
+#question-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+input {
+  width: 350px;
+  max-width: 80%;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+button {
+  padding: 1rem 2rem;
+  cursor: pointer;
+}
+
+#selection-screen {
+  display: none;
+  min-height: 100vh;
+  background: transparent;
+  background-attachment: fixed;
+  padding: 4rem;
+  box-sizing: border-box;
+}
+
+#objects {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 2rem auto 0;
+  max-width: 800px; /* 3 cards à 240px + 2 gaps à 32px */
+}
+
+.card {
+  width: 240px;
+  height: 420px;
+  flex: 0 0 240px; /* prevent shrinking */
+  perspective: 1000px;
+  cursor: pointer;
+  transition: .5s;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .8s;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  border: 1px solid black;
+}
+
+.card-front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+  background: white;
+}
+
+.result-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* hidden until the card is clicked a second time */
+.dark-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+
+.card-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+
+.card-back.show-text .dark-overlay,
+.card-back.show-text .card-content {
+  opacity: 1;
+}
+
+.result-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  font-size: 3.6rem;
+  color: #adb6ff; /* had to change this to a lighter color because the original's color contrast to the backgrounds was too low :-( */
+  margin: 12px;
+  line-height: .8;
+}
+
+.text-box {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  padding: 20px 18px;
+}
+
+.result-text {
+  color: white;
+  font-size: .95rem;
+  line-height: 1.4;
+  font-family: Consolas, monospace;
+}
+
+
+</style>
+</head>
+
+<body>
+<!-- back button -->
+<a class="back-button" href="index.html" aria-label="Go back to homepage">
+    <img src="./images/back-button.svg" alt="Homepage-Link">
+</a>
+
+<form id="question-screen">
+
+    <h1>Enter your question</h1>
+
+    <input id="question" type="text">
+
+    <button id="begin" type="submit">Continue</button>
+
+  </form>
+
+
+<section id="selection-screen">
+
+    <h2 id="questionText"></h2>
+
+    <p>Move your mouse among the cards and choose your answer.</p>
+
+    <div id="objects">
+
+        <div class="card" data-item="0">
+            <div class="card-inner">
+
+                <div class="card-front">
+                    <img src="./images/card-front-alt.jpg">
+                </div>
+
+                <div class="card-back">
+
+                    <img class="result-image">
+
+                    <div class="dark-overlay"></div>
+
+                    <div class="card-content">
+
+                        <h2 class="result-title"></h2>
+
+                        <div class="text-box">
+                            <p class="result-text"></p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card" data-item="1">
+            <div class="card-inner">
+
+                <div class="card-front">
+                    <img src="./images/card-front.webp">
+                </div>
+
+                <div class="card-back">
+
+                    <img class="result-image">
+
+                    <div class="dark-overlay"></div>
+
+                    <div class="card-content">
+
+                        <h2 class="result-title"></h2>
+
+                        <div class="text-box">
+                            <p class="result-text"></p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card" data-item="2">
+            <div class="card-inner">
+
+                <div class="card-front">
+                    <img src="./images/card-front-alt.jpg">
+                </div>
+
+                <div class="card-back">
+
+                    <img class="result-image">
+
+                    <div class="dark-overlay"></div>
+
+                    <div class="card-content">
+
+                        <h2 class="result-title"></h2>
+
+                        <div class="text-box">
+                            <p class="result-text"></p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card" data-item="3">
+            <div class="card-inner">
+
+                <div class="card-front">
+                    <img src="./images/card-front.webp">
+                </div>
+
+                <div class="card-back">
+
+                    <img class="result-image">
+
+                    <div class="dark-overlay"></div>
+
+                    <div class="card-content">
+
+                        <h2 class="result-title"></h2>
+
+                        <div class="text-box">
+                            <p class="result-text"></p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+                <div class="card" data-item="4">
+            <div class="card-inner">
+
+                <div class="card-front">
+                    <img src="./images/card-front-alt.jpg">
+                </div>
+
+                <div class="card-back">
+
+                    <img class="result-image">
+
+                    <div class="dark-overlay"></div>
+
+                    <div class="card-content">
+
+                        <h2 class="result-title"></h2>
+
+                        <div class="text-box">
+                            <p class="result-text"></p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+                        <div class="card" data-item="5">
+            <div class="card-inner">
+
+                <div class="card-front">
+                    <img src="./images/card-front.webp">
+                </div>
+
+                <div class="card-back">
+
+                    <img class="result-image">
+
+                    <div class="dark-overlay"></div>
+
+                    <div class="card-content">
+
+                        <h2 class="result-title"></h2>
+
+                        <div class="text-box">
+                            <p class="result-text"></p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+<script>
+const items = [
+  {
+    name: "RESIGNATION",
+    images: ["./images/Resignation.webp"],
+    text: "You will freeze in place if you remain this way. Go outside where the world awaits you like a garden, go outside to the roses."
+  },
+  {
+    name: "GROWTH",
+    images: ["./images/Growth.webp"],
+    text: "The earth has a heart as well as blood and teeth, it’s made up of things so much like you. This vessel, this vessel is a lie, a shapeshifting beast, a lesson in fluidity. There is meaning in the dirt."
+
+  },
+    {
+    name: "NIGHTMARE",
+    images: ["./images/Nightmare.webp"],
+    text: "“I am a thorn in these rotten grounds”, but there is nothing redeeming in toil. Time will destroy everything. The art of creating will save you. Your body is not a coffin for pain to be buried in."
+  },
+  {
+    name: "VEILED",
+    images: ["./images/Veiled.webp"],
+    text: "Your knowledge of the world can only be superficial and relative. The weakness of thinking machines is that they actually believe all the information they receive, and act accordingly. The wound is where the light enters."
+  },
+  {
+    name: "CONNECTION",
+    images: ["./images/CONNECTION.webp"],
+    text: "You are out with lanterns looking for yourself. When you are all around. You’ve become blind to it. The cage is open. You are all around."
+  },
+  {
+    name: "THE SHIP",
+    images: ["./images/THE_SHIP.webp"],
+    text: "When what you have waited for has already sailed. Lift your eyes to the blue open-ended ocean. Some things are always there."
+  }
+];
+
+const questionForm = document.getElementById("question-screen");
+const questionInput = document.getElementById("question");
+
+questionForm.addEventListener("submit", (event) => {
+  event.preventDefault(); /* stop the form from submitting and reloading the page if no text is entered */
+
+  const q = questionInput.value.trim();
+
+  if (q === "") {
+    alert("Please enter a question before continuing.");  /* error window if no text is entered */
+    questionInput.focus();
+    return;
+  }
+
+  document.getElementById("question-screen").style.display = "none";
+  document.getElementById("selection-screen").style.display = "block";
+
+  document.getElementById("questionText").innerHTML =
+    "You asked: <em>" + q + "</em>";
+
+  // shuffle which items are in which card -> randomness
+  const order = [0, 1, 2, 3, 4, 5].sort(() => Math.random() - 0.5);
+  document.querySelectorAll(".card").forEach((card, i) => {
+    card.dataset.item = order[i];
+  });
+
+});
+
+// Step 1: flip the chosen card and show its image only
+function reveal(card) {
+
+  const index = card.dataset.item;
+  const item = items[index];
+
+  const img = card.querySelector(".result-image");
+  const title = card.querySelector(".result-title");
+  const text = card.querySelector(".result-text");
+
+  img.src = item.images[0];
+  title.textContent = item.name;
+  text.textContent = item.text;
+
+  document.querySelectorAll(".card").forEach(c => {
+    if (c !== card) {
+      c.style.filter = "blur(4px) brightness(.9)";
+      c.style.pointerEvents = "none";
+    }
+  });
+
+  card.classList.add("flipped");
+
+}
+
+// Step 2: clicking the already-revealed card toggles the
+// dark/blurred overlay with the title + text on and off
+function toggleText(card) {
+  const cardBack = card.querySelector(".card-back");
+  cardBack.classList.toggle("show-text");
+}
+
+let chosen = false;
+
+const cards = document.querySelectorAll(".card");
+
+cards.forEach(card => {
+
+  card.addEventListener("click", () => {
+
+    if (!chosen) {
+      chosen = true;
+      reveal(card);
+      return;
+    }
+
+    if (card.classList.contains("flipped")) {
+      toggleText(card);
+    }
+
+  });
+
+});
+
+const container = document.getElementById("objects");
+
+container.addEventListener("mousemove", shuffle);
+
+let timeout;
+
+function shuffle() {
+
+  if (chosen) return;
+
+  clearTimeout(timeout);
+
+  document.querySelectorAll(".card").forEach(card => {
+
+    const x = (Math.random() * 5);
+    const y = (Math.random() * 5);
+    const r = (Math.random() * 5) - 2.5;
+
+    card.style.transform =
+      `translate(${x}px,${y}px) rotate(${r}deg)`;
+
+  });
+
+  timeout = setTimeout(() => {
+    document.querySelectorAll(".card").forEach(card => {
+      card.style.transform = "";
+    });
+  }, 500);
+
+}
+
+</script>
+</body>
+</html>
