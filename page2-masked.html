@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>WHAT REMAINS</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="./images/icon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./images/icon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./images/icon/favicon-16x16.png">
+    <link rel="manifest" href="./images/icon/site.webmanifest">
+
+<style>
+
+  *{ box-sizing:border-box; -webkit-user-select:none; user-select:none; }
+    html,body{
+        margin: 0; 
+        padding: 0; 
+        width: 100vw; 
+        height: 150vh;
+        background: #000; 
+        overflow: hidden;
+        font-family: Consolas, monospace;
+    }
+
+    /* ---------- black fade overlay, sits above absolutely everything ---------- */
+    #fade-overlay{
+        position: fixed;
+        inset: 0;
+        background: #000;
+        opacity: 1; /* page opens on black, then fades in on load */
+        pointer-events: none;
+        z-index: 5000;
+    }
+
+    /* ---- back button ---- */
+    .back-button {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1000;
+        width: 48px;
+        height: 48px;
+        display: inline-block;
+        transition: transform .2s ease, opacity .2s ease;
+    }
+
+    .back-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    }
+
+    .back-button:hover {
+    transform: scale(1.08);
+    opacity: .8;
+    }
+    
+
+  /* ---------- full-viewport scene ---------- */
+    .scene{
+        position: fixed; 
+        inset: 0;
+        display: none;
+        align-items: center; 
+        justify-content: center;
+        background: white;
+        pointer-events: none;
+    }
+
+    .scene.active{ 
+        display: flex; 
+        pointer-events: auto; 
+    }
+
+    #scene-reveal{
+        align-items: flex-end;
+    }
+
+    /* scenes 1 & 2: */
+    .bleed-img{
+        position: absolute; 
+        inset: 0;
+        width: 100vw;
+        height: 100svh;
+        min-width: 100%;
+        min-height: 100%;
+        object-fit: contain;
+        object-position: center bottom;
+        background: white;
+        pointer-events: none;
+    }
+
+    /* hotspot */
+    #intro-hotspot.hotspot{
+        position:absolute;
+        left:50%; top:50%;
+        width:100vmin; height:100vmin; /* 100vmin = the smaller of vw and vh, so it always fits, sadly didn't figure out how to anchor the hotspots to the images directly for more accuracy so its only in the middle of the page. At least it works on all devices*/
+        transform:translate(-50%,-50%);
+        border-radius:50%;
+        cursor:pointer;
+        z-index:5;
+    }
+
+    #sequence-hotspot.hotspot{
+        position:absolute;
+        left:50%; top:50%;
+        width:100vmin; height:100vmin;
+        transform:translate(-50%,-50%);
+        border-radius:50%;
+        cursor:pointer;
+        z-index:5;
+    }
+
+    /* ---------- scene 3/4 ---------- */
+    .stage{
+        position:relative;
+        width: min(100vw, 100vh);
+        height: min(100vw, 100vh);
+        background: white;
+        flex-shrink: 0; /* prevent shrinking */
+    }
+
+    .layer{
+        position: absolute; 
+        inset:0;
+        width: 100%; 
+        height: 100%;
+        object-fit: fill; 
+        pointer-events:none;
+    }
+    
+    .layer.draggable{
+        -webkit-user-drag: none; /* prevent default image drag */
+        pointer-events:auto;
+        cursor:grab;
+        touch-action:none;
+    }
+    
+    .layer.dragging{ 
+    cursor: grabbing; 
+    transition:none !important; 
+    }
+
+    .layer.settling{ 
+    transition: transform 400ms ease; 
+    }
+  
+    .layer.flung{ 
+    transition: transform 700ms ease, 
+    opacity 700ms ease; 
+    }
+    
+
+  .void-bg{ background:#ffffff; }
+
+  /* =========================================================================
+     REUSABLE TEXTBOX
+     ========================================================================= */
+  .textbox{
+      position: fixed;
+      z-index: 20;
+      max-width: 34ch;
+      padding: 0.85rem 1.1rem;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      font-family: monospace;
+      font-size: 1rem;
+      line-height: 1.45;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 700ms ease, transform 700ms ease;
+  }
+  .textbox.visible{
+      opacity: 1;
+  }
+
+  .textbox.pos-offcenter{
+      left: 38vw; top: 45vh;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      transition-delay: 1s;
+  }
+
+  .textbox.pos-bottom{
+      left: 50vw; bottom: 8vh;
+      transform: translate(-50%, 6px);
+      text-align: center;
+      transition-delay: 0.1s;
+  }
+
+  .textbox.pos-top-left{
+      left: 6vw; top: 10vh;
+      transition-delay: 1.5s;
+  }
+
+  .textbox.pos-top-right{
+      right: 6vw; top: 18vh;
+      transition-delay: 2s;
+  }
+</style>
+</head>
+<body>
+
+<div id="fade-overlay"></div>
+
+<a class="back-button" href="index.html" aria-label="Go back to homepage">
+    <img src="./images/back-button.svg" alt="Homepage-Link">
+</a>
+
+<!-- SCENE 1 -->
+<section class="scene active" id="scene-intro">
+  <img class="bleed-img" id="intro-img" src="./images/intro.webp" alt="masked person sitting">
+  <div class="hotspot" id="intro-hotspot"></div>
+
+  <div class="textbox pos-bottom" id="intro-text">
+    <p>What are you doing here?</p>
+  </div>
+</section>
+
+<!-- SCENE 2 -->
+<section class="scene" id="scene-sequence">
+  <div class="textbox pos-bottom" id="sequence-text">
+    <p>Stop that!</p>
+  </div>
+  <img class="bleed-img" id="sequence-img" src="" alt="a sequence of images showing the person resisting as their mask is taken away">
+  <div class="hotspot" id="sequence-hotspot"></div>
+</section>
+
+<!-- SCENE 3+4: void -> bare face -> iris (moves) -> eyes (static) -> parts (draggable) -> mask (draggable, topmost) -->
+<section class="scene" id="scene-reveal">
+  <div class="stage" id="reveal-stage">
+  <div class="textbox pos-bottom" id="reveal-text">
+    <p>Why</p>
+  </div>
+  <div class="textbox pos-top-left" id="breakdown-text1">
+    <p>You weren't supposed to see</p>
+  </div>
+  <div class="textbox pos-offcenter" id="breakdown-text2">
+    <p>Please don't look at me</p>
+  </div>
+  <div class="textbox pos-top-right" id="breakdown-text3">
+    <p>Leave!</p>
+  </div>
+
+    <div class="layer void-bg"></div>
+    <img class="layer" id="face-bare" src="./images/face-bare.webp" alt="The person's face with no mask, eyebrows, nose, or mouth">
+    <img class="layer" id="iris"      src="./images/compressed/iris.png" alt="The iris of the person's eye">
+    <img class="layer" id="eyes"      src="./images/compressed/eyes.png" alt="The static eye shape">
+    <div id="parts-container"></div>
+    <img class="layer draggable" id="mask" src="./images/compressed/mask.png" alt="The mask that can be dragged" draggable="false">
+  </div>
+</section>
+
+<script>
+
+// ===========================================================================
+// all the settings for the whole page live in here, so I don't have to dig
+// through the code every time I want to change a path or a number
+// ===========================================================================
+var CONFIG = {
+  introImage: './images/intro.webp',
+
+  sequenceImages: [
+    './images/seq-1.webp',
+    './images/seq-2.webp',
+    './images/seq-3.webp',
+    './images/seq-4.webp',
+  ],
+
+  faceBase: './images/face-bare.webp', // opaque, furthest-back face layer
+  eyesStaticImage: './images/eyes.png', // static eye shape, sits above the iris, never moves
+  irisImage: './images/iris.png', // the part that actually tracks the cursor
+
+  mask: './images/mask.png',
+  maskDragDistance: 140, // how many px you need to drag the mask before it counts as "off"
+
+  // the LAST one in this list is drawn closest to the mask
+  faceParts: [
+    { id: 'part-eyebrows', src: './images/eyebrows.png', alt:"The person's draggable eyebrows" },
+    { id: 'part-nose', src: './images/compressed/nose.png', alt:"The person's draggable nose" },
+    { id: 'part-mouth', src: './images/compressed/mouth.png', alt:"The person's draggable mouth" },
+  ],
+  partDragDistance: 90,
+
+  eyeMaxOffsetPx: 1, // how far the iris can move toward the mouse
+
+  // how long the fades take (ms)
+  fade: {
+    sequenceIn: 500,
+    sequenceOut: 500,
+    revealIn: 1300, // the longer fade before the last scene
+    revealOut: 1800,
+    revealHold: 250, // extra pause while the screen is fully black
+  },
+};
+
+// ===========================================================================
+// FADE TO BLACK
+// this just changes the opacity of a black div that sits on top of
+// everything else (#fade-overlay). I couldn't get promises/async stuff to
+// work how I wanted, so I'm just using regular callbacks + setTimeout,
+// same idea as this: https://stackoverflow.com/questions/14226803/wait-5-seconds-before-executing-next-line/14226807#14226807
+// ===========================================================================
+var fadeOverlay = document.getElementById('fade-overlay');
+
+function fadeToBlack(duration, callback) {
+  fadeOverlay.style.transition = 'opacity ' + duration + 'ms ease';
+  fadeOverlay.style.pointerEvents = 'auto'; // stops you from clicking stuff while it's black
+  fadeOverlay.style.opacity = 1;
+  setTimeout(function () {
+    if (callback) callback();
+  }, duration);
+}
+
+function fadeFromBlack(duration, callback) {
+  fadeOverlay.style.transition = 'opacity ' + duration + 'ms ease';
+  fadeOverlay.style.pointerEvents = 'none';
+  fadeOverlay.style.opacity = 0;
+  setTimeout(function () {
+    if (callback) callback();
+  }, duration);
+}
+
+// ===========================================================================
+// TEXTBOX HELPERS
+// just adds/removes the "visible" class, the actual fade in/out happens in
+// the CSS transition on .textbox
+// ===========================================================================
+function showTextbox(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.add('visible');
+}
+function hideTextbox(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('visible');
+}
+
+// ===========================================================================
+// SCENE SWITCHING
+// only one .scene has the "active" class at a time, everything else is
+// display:none. Is only called while the screen is fully black
+// (inside a fadeToBlack callback) so you never actually see it happen
+// ===========================================================================
+var scenes = {
+  intro: document.getElementById('scene-intro'),
+  sequence: document.getElementById('scene-sequence'),
+  reveal: document.getElementById('scene-reveal'),
+};
+
+function goToScene(name) {
+  for (var key in scenes) {
+    scenes[key].classList.remove('active');
+  }
+  scenes[name].classList.add('active');
+}
+
+// ===========================================================================
+// SCENE 1 — intro image, click the middle to start
+// ===========================================================================
+document.getElementById('intro-img').src = CONFIG.introImage;
+
+document.getElementById('intro-hotspot').addEventListener('click', function () {
+  hideTextbox('intro-text');
+
+  fadeToBlack(CONFIG.fade.sequenceIn, function () {
+    startSequenceScene();
+    goToScene('sequence');
+    showTextbox('sequence-text');
+    fadeFromBlack(CONFIG.fade.sequenceOut);
+  });
+});
+
+// ===========================================================================
+// SCENE 2 — click 4 times, image changes each time, then fades into scene 3
+// ===========================================================================
+var sequenceIndex = 0;
+
+function startSequenceScene() {
+  sequenceIndex = 0;
+  document.getElementById('sequence-img').src = CONFIG.sequenceImages[0];
+}
+
+document.getElementById('sequence-hotspot').addEventListener('click', function () {
+  sequenceIndex = sequenceIndex + 1;
+
+  // last click - this is the "longer fade", then it goes to the reveal scene
+  if (sequenceIndex >= CONFIG.sequenceImages.length) {
+    fadeToBlack(CONFIG.fade.revealIn, function () {
+      // stay black for a little extra bit before switching
+      setTimeout(function () {
+        goToScene('reveal');
+        fadeFromBlack(CONFIG.fade.revealOut);
+      }, CONFIG.fade.revealHold);
+    });
+    return;
+  }
+
+  // normal click, just swap the picture with a quick fade
+  fadeToBlack(CONFIG.fade.sequenceIn, function () {
+    document.getElementById('sequence-img').src = CONFIG.sequenceImages[sequenceIndex];
+    fadeFromBlack(CONFIG.fade.sequenceOut);
+  });
+});
+
+// ===========================================================================
+// SCENE 3+4 — the mask, the face underneath, and the parts you can drag off
+// everything gets built right when the page loads (it's just hidden behind
+// the mask/other scenes until we need it)
+// ===========================================================================
+var revealStage = document.getElementById('reveal-stage');
+var partsContainer = document.getElementById('parts-container');
+var irisEl = document.getElementById('iris');
+var remainingParts = 0;
+
+function buildRevealScene() {
+  document.getElementById('face-bare').src = CONFIG.faceBase;
+  document.getElementById('iris').src = CONFIG.irisImage;
+  document.getElementById('eyes').src = CONFIG.eyesStaticImage;
+
+  remainingParts = CONFIG.faceParts.length;
+
+  for (var i = 0; i < CONFIG.faceParts.length; i++) {
+    var part = CONFIG.faceParts[i];
+
+    var img = document.createElement('img');
+    img.className = 'layer draggable';
+    img.draggable = false; // stops the browser's built in image drag from taking over
+    img.id = part.id;
+    img.src = part.src;
+    partsContainer.appendChild(img);
+
+    // need a separate variable for this or every part ends up sharing the
+    // same img reference by the time the click actually happens (closures + loops :( ))
+    (function (thisImg) {
+      makeDraggable(thisImg, CONFIG.partDragDistance, function (dx, dy) {
+        flingAway(thisImg, dx, dy, function () {
+          thisImg.remove();
+          remainingParts = remainingParts - 1;
+          if (remainingParts === 0) {
+            onlyEyesRemain();
+          }
+        });
+      });
+    })(img);
+  }
+
+  var mask = document.getElementById('mask');
+  mask.src = CONFIG.mask;
+  makeDraggable(mask, CONFIG.maskDragDistance, function (dx, dy) {
+    flingAway(mask, dx, dy, function () {
+      mask.style.display = 'none';
+      // the face/parts underneath were already there the whole time,
+      // so nothing else needs to happen here
+    });
+  });
+}
+buildRevealScene();
+
+function onlyEyesRemain() {
+  revealStage.classList.add('only-eyes');
+  showTextbox('reveal-text');
+  showTextbox('breakdown-text1');
+  showTextbox('breakdown-text2');
+  showTextbox('breakdown-text3');
+
+  // send them back to the start after a few seconds
+  // same setTimeout trick as before
+  setTimeout(function () {
+    window.location.href = 'index.html';
+  }, 3000);
+}
+
+// ===========================================================================
+// IRIS FOLLOWS THE MOUSE
+// only runs while scene 3/4 is showing. Only #iris moves, #eyes stays put.
+// getBoundingClientRect: https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
+// clamping a number between -max and max, see
+// https://stackoverflow.com/questions/11409895/whats-the-most-elegant-way-to-cap-a-number-to-a-segment-bounds
+// ===========================================================================
+window.addEventListener('pointermove', function (e) {
+  if (!scenes.reveal.classList.contains('active')) return;
+
+  var rect = revealStage.getBoundingClientRect();
+  var centerX = rect.left + rect.width / 2;
+  var centerY = rect.top + rect.height / 2;
+
+  var moveX = (e.clientX - centerX) * 0.05; // 0.05 = how strongly it reacts
+  var moveY = (e.clientY - centerY) * 0.05;
+
+  var max = CONFIG.eyeMaxOffsetPx;
+  if (moveX > max) moveX = max;
+  if (moveX < -max) moveX = -max;
+  if (moveY > max) moveY = max;
+  if (moveY < -max) moveY = -max;
+
+  irisEl.style.transform = 'translate(' + moveX + 'px, ' + moveY + 'px)';
+});
+
+// ===========================================================================
+// DRAG + FLING
+// uses Pointer Events so it works with both mouse and touch:
+// https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events
+// setPointerCapture makes sure we keep getting move/up events even if the
+// cursor goes outside the element while dragging fast:
+// https://developer.mozilla.org/en-US/docs/Web/API/Element/setPointerCapture
+// ===========================================================================
+function makeDraggable(el, distance, onFlungOff) {
+  var startX = 0;
+  var startY = 0;
+  var currentX = 0;
+  var currentY = 0;
+  var isDragging = false;
+  var pointerId = null;
+
+  el.addEventListener('pointerdown', function (e) {
+    if (isDragging) return; // already dragging this one, ignore extra fingers/clicks
+
+    isDragging = true;
+    pointerId = e.pointerId;
+    el.setPointerCapture(pointerId);
+    el.classList.remove('settling');
+    el.classList.add('dragging');
+    startX = e.clientX;
+    startY = e.clientY;
+  });
+
+  el.addEventListener('pointermove', function (e) {
+    if (!isDragging) return;
+    if (e.pointerId !== pointerId) return;
+
+    currentX = e.clientX - startX;
+    currentY = e.clientY - startY;
+    el.style.transform = 'translate(' + currentX + 'px, ' + currentY + 'px)';
+  });
+
+  function stopDragging(e) {
+    if (!isDragging) return;
+    if (e.pointerId !== pointerId) return;
+
+    isDragging = false;
+    el.classList.remove('dragging');
+
+    // did it move far enough on either the x or the y axis to count as "off"?
+    var draggedFarEnough = Math.abs(currentX) > distance || Math.abs(currentY) > distance;
+
+    if (draggedFarEnough) {
+      onFlungOff(currentX, currentY);
+    } else {
+      // wasn't far enough, snap back to where it started
+      el.classList.add('settling');
+      currentX = 0;
+      currentY = 0;
+      el.style.transform = 'translate(0px, 0px)';
+    }
+  }
+
+  el.addEventListener('pointerup', stopDragging);
+  el.addEventListener('pointercancel', stopDragging);
+}
+
+// animates the element flying off in whatever direction it was already
+// being dragged, then removes it once the animation finishes
+// transitionend event: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/transitionend_event
+function flingAway(el, dx, dy, done) {
+  el.classList.add('flung');
+
+  var scale = 1.8; // just keep going the same direction
+  el.style.transform = 'translate(' + dx * scale + 'px, ' + dy * scale + 'px)';
+  el.style.opacity = 0;
+
+  el.addEventListener(
+    'transitionend',
+    function () {
+      done();
+    },
+    { once: true }
+  );
+}
+
+// ===========================================================================
+// runs once when the page first loads to start everything on black and then
+// fade in
+// ===========================================================================
+window.addEventListener('load', function () {
+  showTextbox('intro-text');
+  fadeFromBlack(1200);
+});
+</script>
+</body>
+</html>
