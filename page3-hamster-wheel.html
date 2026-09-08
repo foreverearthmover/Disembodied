@@ -207,11 +207,19 @@
     const posts = document.getElementById('posts');
     const stayBtn = document.getElementById('stayBtn');
     const restartBtn = document.getElementById('restartBtn');
+    const finalMessage = document.getElementById('finalMessage');
+    const choices = finalMessage.querySelector('.choices');
 
-    // "Stay" does nothing - scroll-snap already holds the user on this last
-    // panel, so the button's only function is to make that choice visible
+    // "Stay" removes the visible choice and moves the user back one snap panel
     stayBtn.addEventListener('click', () => {
-        // nothing happens intentionally
+        choices.style.display = 'none';
+        stayBtn.disabled = true;
+        restartBtn.disabled = true;
+
+        posts.scrollTo({
+            top: posts.scrollTop - posts.clientHeight,
+            behavior: 'smooth'
+        });
     });
 
     // "Go to the beginning" reloads the page, which resets scroll position
