@@ -247,10 +247,10 @@
 
     <div class="layer void-bg"></div>
     <img class="layer" id="face-bare" src="./images/face-bare.webp" alt="The person's face with no mask, eyebrows, nose, or mouth">
-    <img class="layer" id="iris"      src="./images/compressed/iris.png" alt="The iris of the person's eye">
-    <img class="layer" id="eyes"      src="./images/compressed/eyes.png" alt="The static eye shape">
+    <img class="layer" id="iris"      src="./images/compressed/iris.webp" alt="The iris of the person's eye">
+    <img class="layer" id="eyes"      src="./images/compressed/eyes.webp" alt="The static eye shape">
     <div id="parts-container"></div>
-    <img class="layer draggable" id="mask" src="./images/compressed/mask.png" alt="The mask that can be dragged" draggable="false">
+    <img class="layer draggable" id="mask" src="./images/compressed/mask.webp" alt="The mask that can be dragged" draggable="false">
   </div>
 </section>
 
@@ -271,17 +271,17 @@ var CONFIG = {
   ],
 
   faceBase: './images/face-bare.webp', // opaque, furthest-back face layer
-  eyesStaticImage: './images/eyes.png', // static eye shape, sits above the iris, never moves
-  irisImage: './images/iris.png', // the part that actually tracks the cursor
+  eyesStaticImage: './images/eyes.webp', // static eye shape, sits above the iris, never moves
+  irisImage: './images/iris.webp', // the part that actually tracks the cursor
 
-  mask: './images/mask.png',
+  mask: './images/mask.webp',
   maskDragDistance: 140, // how many px you need to drag the mask before it counts as "off"
 
   // the LAST one in this list is drawn closest to the mask
   faceParts: [
-    { id: 'part-eyebrows', src: './images/eyebrows.png', alt:"The person's draggable eyebrows" },
-    { id: 'part-nose', src: './images/nose.png', alt:"The person's draggable nose" },
-    { id: 'part-mouth', src: './images/mouth.png', alt:"The person's draggable mouth" },
+    { id: 'part-eyebrows', src: './images/eyebrows.webp', alt:"The person's draggable eyebrows" },
+    { id: 'part-nose', src: './images/nose.webp', alt:"The person's draggable nose" },
+    { id: 'part-mouth', src: './images/mouth.webp', alt:"The person's draggable mouth" },
   ],
   partDragDistance: 90,
 
