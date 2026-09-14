@@ -23,29 +23,6 @@ html,body{
     font-family:sans-serif;
 }
 
-.back-button {
-  position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
-  z-index: 1000;
-  width: 48px;
-  height: 48px;
-  display: inline-block;
-  transition: transform .2s ease, opacity .2s ease;
-}
-
-.back-button img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.back-button:hover {
-  transform: scale(1.08);
-  opacity: .8;
-}
-
 #scene{
     position:relative;
     width:100vw;
@@ -107,12 +84,6 @@ html,body{
 </style>
 
 <body>
-    
-<!-- universal back button: copy this whole <a> block into any subpage.
- swap the src for your own icon image. -->
-<a class="back-button" href="index.html">
-    <img src="./images/back-arrow.png" alt="Back">
-</a>
 
 <div id="scene">
 
